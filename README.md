@@ -1,6 +1,6 @@
 # EncryptionDecryption
 
-##Encryption Algorithm:
+## Encryption Algorithm:
 1. Reverse string
 2. Combine every 2 characters of the message 
 3. Reverse alphabet
