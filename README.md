@@ -1,4 +1,5 @@
 # EncryptionDecryption
+High school junior project - developing an encryption algorithm based around Caesar Cipher and numeric system conversions.
 
 ## Encryption Algorithm:
 1. Reverse string
