@@ -19,19 +19,52 @@ class Lesson13_EncryptionProject{
 
     */
 
-    public static void main(String[] args){
-        String msg = Input.readFile("EncryptionProject.txt");
-        //String msg = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,";
+    static void writeFile(String file_path, String msg){
+        try {
+            //Write the encrypted message to a file
+            Files.write(Paths.get(file_path), msg.getBytes());
+        }
+        catch(IOException e) {
+            e.printStackTrace();
+        }
+    }
 
+    static char reverseLetter(char letter){
+
+        int ascii;
+
+        //If - Lower Reversing, Else If - Uppercase Reversing, Else - Leaving It As Is (Anything other than alphabets, ex: . , ; "")
+        if ((int)letter>=97 && (int)letter<=122){
+            ascii=122-((int)letter-97);
+        }else if((int)letter>=65 && (int)letter<=90){
+            ascii=90-((int)letter-65);
+        }else{
+            ascii = (int)letter;
+        }
+
+        return (char)ascii;
+    }
+
+    static String hexToBinary8(int hex){
+        String binary = "";
+        int left = hex;
+
+        for (int x=7; x>=0; x--){
+            binary += String.valueOf(left/(int)(Math.pow(2,x)));
+            left = left%(int)(Math.pow(2,x));
+        }
+
+        return binary;
+    }
+
+    static String encrypt(String msg){
         char letter = ' ';
-        int ascii = 0, newAscii = 0;
+        int ascii = 0, rNum = 0;
 
-        int rNum = 0;
         boolean secondLoop = false;
 
         String alteredMsg = "";
         int hexDigit1 = 0, hexDigit0 = 0;
-        int left = 0;
         
         //String build = "", build2 = "";
 
@@ -40,168 +73,126 @@ class Lesson13_EncryptionProject{
         //Loop reverses string, every 2 letters
         for (int i=msg.length()-1; i>=0; i-=2){
             letter = msg.charAt(i);
-            //System.out.println(letter);
-            //ascii = (int)letter;
 
             //Reverse letters (alphabet order, a=z; b=y; c=x; etc...)
+            ascii = (int)reverseLetter(letter);
 
-            //If - Lower Reversing, Else If - Uppercase Reversing, Else - Leaving It As Is (Anything other than alphabets, ex: . , ; "")
-            if ((int)letter>=97 && (int)letter<=122){
-                ascii=122-((int)letter-97);
-            }else if((int)letter>=65 && (int)letter<=90){
-                ascii=90-((int)letter-65);
-            }else{
-                ascii = (int)letter;
-            }
             //Adds a random number to ascii value of alphabet
             rNum = (int)(Math.floor(Math.random()*5));
             ascii = ascii + rNum;
-            //System.out.println(ascii + " " + (char)ascii);
 
-
-            //Hex Value, Second Digit
+            //Hex Value, Second Digit (Leftmost Hex Digit)
             hexDigit1 = ascii/16;
+            //If greater than 10, convert to A-F ascii value. A = 10 (Hex) -> 65 (Ascii), B = 11 (Hex) -> 66 (Ascii), C = 12 (Hex) -> 67 (Ascii), ... F = 15 (Hex) -> 70 (Ascii).
             if (hexDigit1>=10 && hexDigit1<=15){
                 //ASCII Value of letter
                 hexDigit1 = hexDigit1 + 55;
             }
             
-            left = hexDigit1;
-            for (int x=7; x>=0; x--){
-                alteredMsg += String.valueOf(left/(int)(Math.pow(2,x)));
-                left = left%(int)(Math.pow(2,x));
-            }
+            //Convert the Second Digit to 8-bit Binary
+            alteredMsg += hexToBinary8(hexDigit1);
 
             //Hex Value, First Digit
             hexDigit0 = ascii%16;
-            //System.out.println(ascii%16);
-            //If greater than 10, convert to A-F ascii value. A = 10 (Hex) -> 65 (Ascii), B = 11 (Hex) -> 66 (Ascii), C = 12 (Hex) -> 67 (Ascii), ... F = 15 (Hex) -> 70 (Ascii). 
+
             if(hexDigit0>=10 && hexDigit0<=15){
                 hexDigit0 = hexDigit0 + 55;
             }
 
-            //Convert the First Digit to Binary
-            left = hexDigit0;
-            for (int x=7; x>=0; x--){
-                alteredMsg += String.valueOf(left/(int)(Math.pow(2,x)));
-                left = left%(int)(Math.pow(2,x));
-            }
+            //Convert the First Digit to 8-bit Binary
+            alteredMsg += hexToBinary8(hexDigit0);
 
 
+            //Add Random Number
             alteredMsg += rNum;
 
 
-            //letter = (char)ascii;
-
-            if ((i-2)<0 && secondLoop == false){
+            if ((i-2)<0 && !secondLoop){
                 i = msg.length(); //Don't subtract 2, first letter when you loop second time will not be registered -- accumulator will subtract it.
                 secondLoop = true;
             }
-
         }
 
-        System.out.println(alteredMsg);
-        try {
-            //Write the encrypted message to a file
-            Files.write(Paths.get("encryptedTest.txt"), alteredMsg.getBytes());
-        }
-        catch(IOException e) {
-            e.printStackTrace();
-        }
+        return alteredMsg;
+    }
 
 
-        // Start decryption program
-        int counter = 7;
-        int asciiBinary = 0;
+    
+    static int asciiBinaryToHex(String binary){
+        int ascii = Integer.parseInt(binary, 2);
+        return (ascii>=65 && ascii<=70) ? (ascii-55) : ascii;
+    }
 
+    static String reverseBinaryAndLetter(String alteredMsg){
         String notBinary = "";
 
-        int powerHex = 0;
-        int NegPos1 = -1;
-        int hex = 0;
-
-        int hexLetter = 0;
-
         //Reverse Binary
-        for(int a=0; a<alteredMsg.length(); a++){
-            if ((a+1)%17!=0 || a==0){
-                //System.out.println(Integer.parseInt(alteredMsg.substring(a,a+1))*Math.pow(2,counter) + " " + counter);
-                asciiBinary += Integer.parseInt(alteredMsg.substring(a,a+1))*Math.pow(2,counter);
+        for(int a=17; a<=alteredMsg.length(); a+=17){
+            int hex = 0;
 
-                if (counter==0){
-                    counter=8;
-                    NegPos1 *= -1;
+            int beg = a-17; //index of first character in binary string
+            int mid = (a + beg)/2; //get mid index of binary string
 
-                    //notBinary += String.valueOf(asciiBinary);
-                    if (asciiBinary>=65 && asciiBinary<=70){
-                        //notBinary += String.valueOf((char)asciiBinary);
-                        hex += (asciiBinary-55)*(int)Math.pow(16,powerHex+NegPos1);
-                        
-                    }else{
-                        //notBinary += String.valueOf(asciiBinary);
-                        hex += asciiBinary*(int)Math.pow(16,powerHex+NegPos1);
-                    }
-                    asciiBinary = 0;
-                    //System.out.println(hex);
+            //Second Hex Digit
+            String hexDigit1 = alteredMsg.substring(beg, mid);
+            hex += asciiBinaryToHex(hexDigit1) * (int)Math.pow(16, 1);
 
-                    //Will actually change value of powerHex
-                    
-                    powerHex = powerHex + NegPos1;
-                    //System.out.println("Power to: " + powerHex);
+            //First Hex Digit
+            String hexDigit0 = alteredMsg.substring(mid, a-1);
+            hex += asciiBinaryToHex(hexDigit0);
 
-                }
+            //Random Number - 17th character
+            int hexLetter = hex - Integer.parseInt(alteredMsg.substring(a-1,a));
 
-                counter--;
-
-            }else{
-                //notBinary+=String.valueOf(hex);
-
-                //Random Number
-                //notBinary+=alteredMsg.substring(a,a+1);
-
-                //notBinary+=String.valueOf(hex-Integer.parseInt(alteredMsg.substring(a,a+1)));
-
-                hexLetter = hex-Integer.parseInt(alteredMsg.substring(a,a+1));
-
-                if (hexLetter>=97 && hexLetter<=122){
-                    hexLetter=122-(hexLetter-97);
-                }else if(hexLetter>=65 && hexLetter<=90){
-                    hexLetter=90-(hexLetter-65);
-                }else{
-                    hexLetter = hexLetter;
-                }
-
-                notBinary+=String.valueOf((char)hexLetter);
-
-                hex = 0;
-            }
-            //System.out.println(a);
+            //Reverse letter
+            notBinary += String.valueOf(reverseLetter((char)hexLetter));
         }
-        //System.out.println(notBinary);
-
         
+        return notBinary;
+    }
+
+    static String decrypt(String alteredMsg){
+        //Reverse Binary
+        String notBinary = reverseBinaryAndLetter(alteredMsg);
+
 
         String msgDecrypted = "";
 
         if (notBinary.length()%2==0){
-            msgDecrypted += notBinary.substring(msg.length()-1);
-            notBinary = notBinary.substring(0,msg.length()-1);
+            msgDecrypted += notBinary.substring(notBinary.length()-1);
+            notBinary = notBinary.substring(0, notBinary.length()-1);
         }
 
         /*//If original message is odd, has to start from middle
-        k= notBinary.length()/2;*/
+        k = notBinary.length()/2;*/
 
         int accumulator = notBinary.length()/2;
         int k = (int)(Math.ceil(notBinary.length()/2.0));
 
         for (int b=1; b<=notBinary.length(); b++){
-            msgDecrypted += notBinary.substring(k-1,k);
-            k+=notBinary.length()/2;
-            if (k>notBinary.length()){
-                k%=notBinary.length();
+            msgDecrypted += notBinary.substring(k-1, k);
+            k += notBinary.length()/2;
+            if (k > notBinary.length()){
+                k %= notBinary.length();
             }
         }
-        System.out.println(msgDecrypted);
-        
+
+        return msgDecrypted;
+    }
+
+    public static void main(String[] args){
+        // Message
+        String msg = Input.readFile("EncryptionProject.txt");
+        //String msg = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,";
+
+        // Start encryption program
+        String alteredMsg = encrypt(msg);
+        System.out.println(alteredMsg);
+        writeFile("encryptedTest.txt", alteredMsg);
+
+
+        // Start decryption program
+        String decryptedMsg = decrypt(alteredMsg);
+        System.out.println(decryptedMsg);
     }
 }
