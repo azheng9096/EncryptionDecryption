@@ -141,7 +141,7 @@ class Lesson13_EncryptionProject{
             String hexDigit0 = alteredMsg.substring(mid, a-1);
             hex += asciiBinaryToHex(hexDigit0);
 
-            //Random Number - 17th character
+            //Random Number - every 17th character
             int hexLetter = hex - Integer.parseInt(alteredMsg.substring(a-1,a));
 
             //Reverse letter
