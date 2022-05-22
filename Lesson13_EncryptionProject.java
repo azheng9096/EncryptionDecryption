@@ -181,17 +181,35 @@ class Lesson13_EncryptionProject{
     }
 
     public static void main(String[] args){
+        // Get and check path
+        String txtPath = "";
+        do {
+            System.out.println("Specify txt file path: ");
+            txtPath = Input.readString();
+
+            Path path = Paths.get(txtPath);
+            if (txtPath.length() != 0 && Files.exists(path)) {
+                break;
+            }
+
+            System.out.println("Invalid txt file path.");
+        } while (true);
+
+        System.out.println("\n\n");
+
         // Message
-        String msg = Input.readFile("EncryptionProject.txt");
-        //String msg = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,";
+        String msg = Input.readFile(txtPath);
 
         // Start encryption program
+        System.out.println("Encrypting..\n");
         String alteredMsg = encrypt(msg);
         System.out.println(alteredMsg);
-        writeFile("encryptedTest.txt", alteredMsg);
+        writeFile("encryptedText.txt", alteredMsg);
 
+        System.out.println("\n\n");
 
         // Start decryption program
+        System.out.println("Decrypting..\n");
         String decryptedMsg = decrypt(alteredMsg);
         System.out.println(decryptedMsg);
     }
